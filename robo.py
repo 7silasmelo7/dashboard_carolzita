@@ -1,5 +1,6 @@
-from datetime import date, timedelta
 import os
+import subprocess
+from datetime import date, timedelta
 from playwright.sync_api import sync_playwright
 import pandas as pd
 import sqlite3
@@ -13,12 +14,20 @@ try:
     import streamlit as st
     EMAIL = st.secrets["CLINICA_EMAIL"]
     SENHA = st.secrets["CLINICA_SENHA"]
-    
+
 except:
     EMAIL = os.getenv("CLINICA_EMAIL")
     SENHA = os.getenv("CLINICA_SENHA")
 
 def executar_automacao():
+
+    print("Verificando/instalando o navegador do Playwright...")
+    try:
+        # Força o download do Chromium caso ele não exista no servidor de nuvem
+        subprocess.run(["playwright", "install", "chromium"], check=True)
+    except Exception as e:
+        print(f"Aviso na instalação do navegador: {e}")
+
     print("Iniciando automação do Playwright...")
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False, slow_mo=500)
