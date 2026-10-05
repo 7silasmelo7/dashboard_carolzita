@@ -1,0 +1,5 @@
+.env
+clinica.db
+relatorio_financeiro.xlsx
+__pycache__/
+.venv/
