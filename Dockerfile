@@ -1,10 +1,14 @@
-# Usa uma imagem oficial do Python baseada em Debian (ótima para o Playwright)
 FROM python:3.11-slim
 
-# Define o diretório de trabalho dentro do container
+# Cria um utilizador não-root exigido pelo Hugging Face
+RUN useradd -m -u 1000 user
+USER user
+ENV PATH="/home/user/.local/bin:$PATH"
+
 WORKDIR /app
 
-# Instala dependências de sistema necessárias para o Playwright e Chromium rodarem no Linux
+# Instala dependências do sistema necessárias para o Playwright (como root temporariamente)
+USER root
 RUN apt-get update && apt-get install -y \
     libnss3 \
     libnspr4 \
@@ -37,18 +41,20 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copia e instala as dependências do Python
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Retorna para o utilizador padrão
+USER user
 
-# Instala os binários do navegador Playwright (Chromium)
+# Copia e instala as dependências do Python
+COPY --chown=user requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# Instala os binários do Chromium para o Playwright
 RUN playwright install chromium
 
-# Copia o restante do código do projeto para dentro do container
-COPY . .
+# Copia os arquivos do projeto
+COPY --chown=user . .
 
-# Expõe a porta padrão que o Streamlit utiliza
-EXPOSE 10000
+# Porta padrão exigida pelo Hugging Face Spaces
+EXPOSE 7860
 
-# Comando para iniciar o aplicativo Streamlit no Render
-CMD ["streamlit", "run", "app.py", "--server.port=10000", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "app.py", "--server.port=7860", "--server.address=0.0.0.0"]
