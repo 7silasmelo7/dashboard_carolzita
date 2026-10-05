@@ -11,14 +11,18 @@ st.title("📊 Dashboard Carolzita")
 # --- BOTÃO DE ATUALIZAÇÃO NA BARRA LATERAL ---
 st.sidebar.header("Painel de Controle")
 if st.sidebar.button("🔄 Atualizar Dados do Sistema"):
-    with st.spinner("Executando robô e baixando novos dados... Isso pode levar alguns segundos."):
+    with st.spinner("Executando robô e baixando novos dados..."):
+        # Executa o robô e captura tanto o sucesso quanto o erro (stdout e stderr)
         resultado = subprocess.run(["python", "robo.py"], capture_output=True, text=True)
+        
         if resultado.returncode == 0:
             st.sidebar.success("Dados atualizados com sucesso!")
             st.cache_data.clear()
             st.rerun()
         else:
-            st.sidebar.error("Erro ao executar o robô. Verifique o terminal.")
+            # Exibe o erro exato no painel lateral para você identificar
+            st.sidebar.error("Erro ao executar o robô:")
+            st.sidebar.code(resultado.stderr)
 
 # Função para ler os dados do SQLite com segurança
 @st.cache_data
