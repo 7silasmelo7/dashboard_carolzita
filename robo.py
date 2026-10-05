@@ -1,7 +1,17 @@
 import os
 import subprocess
+import sys
+
+# --- INSTALAÇÃO AUTOMÁTICA DE EMERGÊNCIA NA NUVEM ---
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    print("Playwright não encontrado. Instalando automaticamente...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "playwright"])
+    subprocess.check_call(["playwright", "install", "chromium"])
+    from playwright.sync_api import sync_playwright
+
 from datetime import date, timedelta
-from playwright.sync_api import sync_playwright
 import pandas as pd
 import sqlite3
 from dotenv import load_dotenv
