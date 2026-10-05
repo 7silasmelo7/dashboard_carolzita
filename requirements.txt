@@ -1,4 +1,6 @@
 streamlit
 pandas
-supabase
+openpyxl
+plotly
 playwright
+python-dotenv
