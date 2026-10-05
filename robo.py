@@ -1,14 +1,19 @@
+import sys
 import os
 import subprocess
-import sys
 
-# --- INSTALAÇÃO AUTOMÁTICA DE EMERGÊNCIA NA NUVEM ---
+# --- ADICIONA O DIRETÓRIO LOCAL DO USUÁRIO AO PATH DO PYTHON ---
+user_site_packages = os.path.expanduser('~/.local/lib/python3.12/site-packages')
+if user_site_packages not in sys.path:
+    sys.path.append(user_site_packages)
+
+# Força a instalação correta caso o módulo ainda não seja encontrado
 try:
     from playwright.sync_api import sync_playwright
 except ImportError:
-    print("Playwright não encontrado. Instalando automaticamente...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "playwright"])
-    subprocess.check_call(["playwright", "install", "chromium"])
+    print("A instalar o Playwright...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", "playwright"])
+    subprocess.check_call([sys.executable, "-m", "playwright", "install", "chromium"])
     from playwright.sync_api import sync_playwright
 
 from datetime import date, timedelta
