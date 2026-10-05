@@ -30,7 +30,7 @@ def executar_automacao():
 
     print("Iniciando automação do Playwright...")
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False, slow_mo=500)
+        browser = p.chromium.launch(headless=True, slow_mo=500)
         page = browser.new_page()
 
         print("Acessando o site...")
@@ -100,3 +100,6 @@ def executar_automacao():
     else:
         print("Erro ao mapear as colunas no Excel.")
         return False
+
+if __name__ == "__main__":
+    executar_automacao()
