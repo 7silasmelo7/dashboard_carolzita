@@ -20,7 +20,7 @@ st.markdown("""
 
 st.title("📊 Dashboard Carolzita")
 
-# Conexão com o Supabase (puxa dos Secrets na nuvem ou do .env local)[cite: 2]
+# Conexão com o Supabase
 try:
     url = st.secrets["SUPABASE_URL"]
     key = st.secrets["SUPABASE_KEY"]
@@ -33,7 +33,7 @@ except:
 
 supabase = create_client(url, key)
 
-# Função para ler os dados do Supabase com cache[cite: 2]
+# Função para ler os dados do Supabase com cache
 @st.cache_data(ttl=600)
 def carregar_dados_do_supabase():
     try:
@@ -94,14 +94,14 @@ if not df.empty:
 
     st.markdown("---")
 
-    # --- SEÇÃO DE CARDS DOS ÚLTIMOS 7 DIAS ---
+    # --- SEÇÃO DE CARDS DOS ÚLTIMOS 7 DIAS (A partir de hoje) ---
     st.subheader("🔥 Desempenho (Últimos 7 Dias)")
     
-    # Define a data de corte com base na última data registrada no sistema
-    data_mais_recente = df['Data'].max()
-    data_limite_7_dias = data_mais_recente - pd.Timedelta(days=7)
+    # Define o corte exatamente com base na data de hoje retroagindo 7 dias
+    data_hoje = pd.Timestamp.today().normalize()
+    data_limite_7_dias = data_hoje - pd.Timedelta(days=7)
     
-    # Filtra apenas os dados dos últimos 7 dias
+    # Filtra os dados dos últimos 7 dias a partir de hoje
     df_ultimos_7 = df[df['Data'] >= data_limite_7_dias]
     
     if not df_ultimos_7.empty:
@@ -124,7 +124,7 @@ if not df.empty:
                 </div>
             """, unsafe_allow_html=True)
     else:
-        st.info("Não há registros suficientes nos últimos 7 dias.")
+        st.info("Não há registros de atendimentos nos últimos 7 dias a contar de hoje.")
 
 else:
     st.warning("⚠️ Ainda não há dados gravados na base de dados do Supabase.")
