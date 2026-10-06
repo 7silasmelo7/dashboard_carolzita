@@ -94,15 +94,17 @@ if not df.empty:
 
     st.markdown("---")
 
-    # --- SEÇÃO DE CARDS DOS ÚLTIMOS 7 DIAS (A partir de hoje) ---
+    
+
+    # --- SEÇÃO DE CARDS DOS ÚLTIMOS 7 DIAS ---
     st.subheader("🔥 Desempenho (Últimos 7 Dias)")
     
-    # Define o corte exatamente com base na data de hoje retroagindo 7 dias
-    data_hoje = pd.Timestamp.today().normalize()
-    data_limite_7_dias = data_hoje - pd.Timedelta(days=7)
+    # Usa a data máxima presente no banco como referência de "hoje" do relatório
+    data_referencia = df['Data'].max()
+    data_limite_7_dias = data_referencia - pd.Timedelta(days=7)
     
-    # Filtra os dados dos últimos 7 dias a partir de hoje
-    df_ultimos_7 = df[df['Data'] >= data_limite_7_dias]
+    # Filtra os dados considerando o intervalo correto dentro dos 30 dias
+    df_ultimos_7 = df[(df['Data'] >= data_limite_7_dias) & (df['Data'] <= data_referencia)]
     
     if not df_ultimos_7.empty:
         fat_7_dias = df_ultimos_7.groupby('Profissional')['Valor Total'].sum().reset_index()
@@ -113,7 +115,7 @@ if not df.empty:
             profissional = row['Profissional']
             valor = row['Valor Total']
             
-            # Conta quantos atendimentos o profissional fez nos últimos 7 dias
+            # Conta quantos atendimentos o profissional fez nesse período de 7 dias
             qtd_atendimentos = len(df_ultimos_7[df_ultimos_7['Profissional'] == profissional])
             
             st.markdown(f"""
@@ -124,7 +126,7 @@ if not df.empty:
                 </div>
             """, unsafe_allow_html=True)
     else:
-        st.info("Não há registros de atendimentos nos últimos 7 dias a contar de hoje.")
+        st.info("Não há registros suficientes para o período recente.")
 
 else:
     st.warning("⚠️ Ainda não há dados gravados na base de dados do Supabase.")
