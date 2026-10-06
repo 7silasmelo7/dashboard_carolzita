@@ -44,9 +44,13 @@ def carregar_dados_do_supabase():
         
         df = pd.DataFrame(dados)
         df = df.rename(columns={'data': 'Data', 'profissional': 'Profissional', 'valor_total': 'Valor Total'})
-        df['Data'] = pd.to_datetime(df['Data'], format='%Y-%m-%d', errors='coerce')
-        if df['Data'].isnull().all():
-            df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
+        
+        # Conversão de data flexível e automática (corrige qualquer falha de formato)
+        df['Data'] = pd.to_datetime(df['Data'], errors='coerce', dayfirst=True)
+        
+        # Remove linhas onde a data não pôde ser convertida
+        df = df.dropna(subset=['Data'])
+        
         return df
     except Exception as e:
         st.error(f"Erro ao carregar dados: {e}")
