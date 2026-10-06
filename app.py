@@ -77,21 +77,22 @@ if not df.empty:
     faturamento_prof = df.groupby('Profissional')['Valor Total'].sum().reset_index()
     faturamento_prof = faturamento_prof.sort_values(by='Valor Total', ascending=True)
     
+    # Gráfico de Pizza (Donut) otimizado para telemóvel com legenda abaixo
     fig_prof = px.pie(
         faturamento_prof, 
         names='Profissional', 
         values='Valor Total',
-        hole=0.4 # Cria um efeito de rosca, que se adapta lindamente a ecrãs verticais
+        hole=0.4
     )
     
     fig_prof.update_layout(
-        height=450,
-        margin=dict(l=10, r=10, t=10, b=10),
+        height=600,                           # Aumenta a altura para dar espaço à legenda
+        margin=dict(l=20, r=20, t=20, b=220), # Margem inferior ampla para empurrar a legenda para baixo
         legend=dict(
-            orientation="h",       # Legenda na horizontal na parte inferior para não espremer o gráfico
-            yanchor="bottom", 
-            y=-0.3, 
-            xanchor="center", 
+            orientation="h",                  # Legenda na horizontal
+            yanchor="top",
+            y=-0.15,                          # Posiciona exatamente abaixo do gráfico
+            xanchor="center",
             x=0.5
         )
     )
