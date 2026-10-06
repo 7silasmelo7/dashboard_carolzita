@@ -77,21 +77,23 @@ if not df.empty:
     faturamento_prof = df.groupby('Profissional')['Valor Total'].sum().reset_index()
     faturamento_prof = faturamento_prof.sort_values(by='Valor Total', ascending=True)
     
-    fig_prof = px.bar(
+    fig_prof = px.pie(
         faturamento_prof, 
-        x='Valor Total', 
-        y='Profissional', 
-        orientation='h',
-        text_auto='.2s', 
-        color='Profissional'
+        names='Profissional', 
+        values='Valor Total',
+        hole=0.4 # Cria um efeito de rosca, que se adapta lindamente a ecrãs verticais
     )
     
     fig_prof.update_layout(
         height=450,
-        showlegend=False,
         margin=dict(l=10, r=10, t=10, b=10),
-        xaxis_title="Valor Total (R$)",
-        yaxis_title=""
+        legend=dict(
+            orientation="h",       # Legenda na horizontal na parte inferior para não espremer o gráfico
+            yanchor="bottom", 
+            y=-0.3, 
+            xanchor="center", 
+            x=0.5
+        )
     )
     
     st.plotly_chart(fig_prof, width='stretch')
