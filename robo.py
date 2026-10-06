@@ -1,23 +1,18 @@
 import os
-import subprocess
-from datetime import date, timedelta
-from playwright.sync_api import sync_playwright
 import pandas as pd
-import sqlite3
 from dotenv import load_dotenv
+from supabase import create_client, Client
 
 # Carrega as variáveis do arquivo .env
 load_dotenv()
 
-# Tenta pegar do Streamlit Cloud (secrets) ou do arquivo .env local
-try:
-    import streamlit as st
-    EMAIL = st.secrets["CLINICA_EMAIL"]
-    SENHA = st.secrets["CLINICA_SENHA"]
+# Credenciais do Supabase (adicione no seu .env ou Streamlit Secrets)
+SUPABASE_URL = os.getenv("https://ckvofetgwredwwbzjdyv.supabase.co")
+SUPABASE_KEY = os.getenv("sb_publishable_wFIgwpNV6BMJ7PEcQj2B5w_UTAtOhcI")
 
-except:
-    EMAIL = os.getenv("CLINICA_EMAIL")
-    SENHA = os.getenv("CLINICA_SENHA")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+
 
 def executar_automacao():
 
@@ -91,11 +86,14 @@ def executar_automacao():
         
         df_filtrado = df_filtrado.dropna(subset=['Data'])
 
-        # Atualiza o banco SQLite
-        conexao = sqlite3.connect('clinica.db')
-        df_filtrado.to_sql('atendimentos', conexao, if_exists='replace', index=False)
-        conexao.close()
-        print("Banco de dados atualizado com sucesso!")
+        # 1. Limpa os dados antigos da tabela no Supabase
+        supabase.table("atendimentos").delete().neq("id", 0).execute()
+
+        # 2. Converte o DataFrame para dicionário e envia para o Supabase em lotes
+        dados_para_inserir = df_filtrado.to_dict(orient="records")
+        supabase.table("atendimentos").insert(dados_para_inserir).execute()
+
+        print("Dados enviados para o Supabase com sucesso!")
         return True
     else:
         print("Erro ao mapear as colunas no Excel.")

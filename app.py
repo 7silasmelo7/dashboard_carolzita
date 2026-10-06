@@ -1,48 +1,45 @@
 import streamlit as st
 import pandas as pd
-import sqlite3
 import plotly.express as px
-import subprocess
-import os
+from supabase import create_client
 
 st.set_page_config(page_title="Dashboard Financeiro", layout="wide")
 st.title("📊 Dashboard Carolzita")
 
-# --- BOTÃO DE ATUALIZAÇÃO NA BARRA LATERAL ---
-st.sidebar.header("Painel de Controle")
-if st.sidebar.button("🔄 Atualizar Dados do Sistema"):
-    with st.spinner("Executando robô e baixando novos dados..."):
-        # Executa o robô e captura tanto o sucesso quanto o erro (stdout e stderr)
-        resultado = subprocess.run(["python", "robo.py"], capture_output=True, text=True)
-        
-        if resultado.returncode == 0:
-            st.sidebar.success("Dados atualizados com sucesso!")
-            st.cache_data.clear()
-            st.rerun()
-        else:
-            # Exibe o erro exato no painel lateral para você identificar
-            st.sidebar.error("Erro ao executar o robô:")
-            st.sidebar.code(resultado.stderr)
+# Conexão com o Supabase (puxa dos Secrets na nuvem ou do .env local)
+try:
+    url = st.secrets["SUPABASE_URL"]
+    key = st.secrets["SUPABASE_KEY"]
+except:
+    import os
+    from dotenv import load_dotenv
+    load_dotenv()
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_KEY")
 
-# Função para ler os dados do SQLite com segurança
-@st.cache_data
-def carregar_dados_do_banco():
+supabase = create_client(url, key)
+
+# Função para ler os dados do Supabase com cache
+@st.cache_data(ttl=600) # Atualiza o cache a cada 10 minutos
+def carregar_dados_do_supabase():
     try:
-        conexao = sqlite3.connect('clinica.db')
-        query = "SELECT * FROM atendimentos"
-        df = pd.read_sql(query, conexao)
-        conexao.close()
+        resposta = supabase.table("atendimentos").select("*").execute()
+        dados = resposta.data
+        if not dados:
+            return pd.DataFrame()
         
-        # Formata a data
+        df = pd.DataFrame(dados)
+        # Padroniza os nomes das colunas para o restante do código
+        df = df.rename(columns={'data': 'Data', 'profissional': 'Profissional', 'valor_total': 'Valor Total'})
         df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y', errors='coerce')
         return df
-    except Exception:
+    except Exception as e:
+        st.error(f"Erro ao carregar dados: {e}")
         return pd.DataFrame()
 
-df = carregar_dados_do_banco()
+df = carregar_dados_do_supabase()
 
 if not df.empty:
-    # Métricas gerais no topo
     total_faturamento = df['Valor Total'].sum()
     total_atendimentos = len(df)
     
@@ -52,14 +49,11 @@ if not df.empty:
     
     st.markdown("---")
 
-    # --- GRÁFICO DE BARRAS VERTICAIS IDÊNTICO À REFERÊNCIA ---
     st.subheader("Faturamento por Profissional")
     
-    # Agrupa, soma e ORDENA do maior para o menor faturamento (decrescente)
     faturamento_prof = df.groupby('Profissional')['Valor Total'].sum().reset_index()
     faturamento_prof = faturamento_prof.sort_values(by='Valor Total', ascending=False)
     
-    # Cria o gráfico de barras verticais com a mesma identidade visual
     fig_prof = px.bar(
         faturamento_prof, 
         x='Profissional', 
@@ -68,14 +62,13 @@ if not df.empty:
         color='Profissional'
     )
     
-    # Ajustes finos de layout para imitar o modelo da imagem (inclinação, altura e legenda lateral)
     fig_prof.update_layout(
         height=550,
-        xaxis_tickangle=-25,  # Inclina os nomes para caberem perfeitamente
-        showlegend=True       # Exibe a legenda lateral com as cores de cada profissional
+        xaxis_tickangle=-25,
+        showlegend=True
     )
     
     st.plotly_chart(fig_prof, use_container_width=True)
 
 else:
-    st.warning("⚠️ Ainda não há dados gravados no banco de dados ('clinica.db'). Clique no botão **'Atualizar Dados do Sistema'** na barra lateral para rodar o robô pela primeira vez!")
+    st.warning("⚠️ Ainda não há dados gravados na base de dados do Supabase.")
