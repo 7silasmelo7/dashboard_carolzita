@@ -50,7 +50,7 @@ def executar_automacao():
 
         print("Aguardando o carregamento do formulário de login...")
         # Aumenta o tempo limite e espera o campo aparecer com segurança
-        page.wait_for_selector("input[type='text']", timeout=20000)
+        page.wait_for_selector("#identity", timeout=20000)
 
         print("Preenchendo credenciais...")
         page.fill("#identity", EMAIL)
