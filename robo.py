@@ -28,7 +28,7 @@ def executar_automacao():
     with sync_playwright() as p:
         # Lança o navegador com argumentos para evitar detecção de bot e maximizado
         browser = p.chromium.launch(
-            headless=True, 
+            headless=False, 
             args=[
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",
@@ -99,20 +99,24 @@ def executar_automacao():
     if len(colunas_desejadas) == 3:
         df_filtrado = pd.DataFrame()
         for chave, original in colunas_desejadas.items():
-            df_filtrado[chave] = df[original]
+            if chave == 'Data':
+                df_filtrado['data'] = df[original].astype(str)
+            elif chave == 'Profissional':
+                df_filtrado['profissional'] = df[original].astype(str)
+            elif chave == 'Valor Total':
+                df_filtrado['valor_total'] = pd.to_numeric(df[original], errors='coerce')
         
-        df_filtrado = df_filtrado.dropna(subset=['Data'])
+        df_filtrado = df_filtrado.dropna(subset=['data'])
 
-        # Limpa os dados antigos e envia os novos para o Supabase
+        # 1. Limpa os dados antigos da tabela no Supabase
         supabase.table("atendimentos").delete().neq("id", 0).execute()
+
+        # 2. Converte o DataFrame para dicionário e envia para o Supabase
         dados_para_inserir = df_filtrado.to_dict(orient="records")
         supabase.table("atendimentos").insert(dados_para_inserir).execute()
 
         print("Dados enviados para o Supabase com sucesso!")
         return True
-    else:
-        print("Erro ao mapear as colunas no Excel.")
-        return False
 
 if __name__ == "__main__":
     executar_automacao()

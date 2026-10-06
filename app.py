@@ -3,7 +3,26 @@ import pandas as pd
 import plotly.express as px
 from supabase import create_client
 
-st.set_page_config(page_title="Dashboard Financeiro", layout="wide")
+# Configuração da página para ocupar a largura total e permitir adaptação mobile
+st.set_page_config(page_title="Dashboard Financeiro", layout="wide", initial_sidebar_state="collapsed")
+
+# Estilização CSS leve para melhorar o visual em celulares
+st.markdown("""
+    <style>
+        .main {
+            padding: 0rem 1rem;
+        }
+        h1 {
+            font-size: 1.8rem !important;
+        }
+        @media (max-width: 768px) {
+            .stMetric {
+                font-size: 0.9rem !important;
+            }
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 st.title("📊 Dashboard Carolzita")
 
 # Conexão com o Supabase (puxa dos Secrets na nuvem ou do .env local)
@@ -43,9 +62,12 @@ if not df.empty:
     total_faturamento = df['Valor Total'].sum()
     total_atendimentos = len(df)
     
+    # Métricas responsivas (empilham automaticamente ou dividem bem o espaço)
     col1, col2 = st.columns(2)
-    col1.metric("💰 Faturamento Total", f"R$ {total_faturamento:,.2f}")
-    col2.metric("📋 Total de Atendimentos", f"{total_atendimentos}")
+    with col1:
+        st.metric("💰 Faturamento Total", f"R$ {total_faturamento:,.2f}")
+    with col2:
+        st.metric("📋 Total de Atendimentos", f"{total_atendimentos}")
     
     st.markdown("---")
 
@@ -54,6 +76,7 @@ if not df.empty:
     faturamento_prof = df.groupby('Profissional')['Valor Total'].sum().reset_index()
     faturamento_prof = faturamento_prof.sort_values(by='Valor Total', ascending=False)
     
+    # Gráfico otimizado para mobile com Plotly
     fig_prof = px.bar(
         faturamento_prof, 
         x='Profissional', 
@@ -63,9 +86,10 @@ if not df.empty:
     )
     
     fig_prof.update_layout(
-        height=550,
-        xaxis_tickangle=-25,
-        showlegend=True
+        height=450,  # Altura reduzida para melhor encaixe em celulares
+        xaxis_tickangle=-35,  # Inclina mais os nomes para não cortarem
+        showlegend=False,     # Remove legenda redundante em gráficos de barra única coloridos
+        margin=dict(l=10, r=10, t=30, b=10) # Margens compactas
     )
     
     st.plotly_chart(fig_prof, use_container_width=True)
