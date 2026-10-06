@@ -33,4 +33,4 @@ jobs:
         CLINICA_SENHA: ${{ secrets.CLINICA_SENHA }}
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-      run: python robo_2.py
+      run: python robo.py
