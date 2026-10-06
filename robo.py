@@ -53,8 +53,8 @@ def executar_automacao():
         page.wait_for_selector("input[type='text']", timeout=20000)
 
         print("Preenchendo credenciais...")
-        page.fill("input[type='text']", EMAIL)
-        page.fill("input[type='password']", SENHA)
+        page.fill("#identity", EMAIL)
+        page.fill("#password", SENHA)
 
         print("Clicando no botão de entrar...")
         page.click("form button[type='submit']")
