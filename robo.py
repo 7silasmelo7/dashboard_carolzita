@@ -26,18 +26,33 @@ def executar_automacao():
 
     print("Iniciando automação do Playwright...")
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, slow_mo=500)
-        page = browser.new_page()
+        # Lança o navegador com argumentos para evitar detecção de bot e maximizado
+        browser = p.chromium.launch(
+            headless=True, 
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage"
+            ]
+        )
+        
+        # Cria um contexto simulando um navegador real de desktop com user-agent padrão
+        context = browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            viewport={"width": 1280, "height": 800}
+        )
+        
+        page = context.new_page()
 
         print("Acessando o site...")
-        page.goto("https://app2.clinicaagil.com.br/login")
+        page.goto("https://app2.clinicaagil.com.br/login", wait_until="networkidle")
 
         print("Aguardando o carregamento do formulário de login...")
-        # Aguarda o campo de texto aparecer explicitamente na tela antes de preencher
-        page.wait_for_selector("input[type='text']", timeout=15000)
+        # Aumenta o tempo limite e espera o campo aparecer com segurança
+        page.wait_for_selector("input[type='text']", timeout=20000)
 
         print("Preenchendo credenciais...")
-        # Preenche com segurança usando os seletores corretos
         page.fill("input[type='text']", EMAIL)
         page.fill("input[type='password']", SENHA)
 
