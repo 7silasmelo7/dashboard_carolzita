@@ -2,7 +2,6 @@ streamlit
 pandas
 openpyxl
 plotly
-playwright
-python-dotenv
 supabase
 psycopg2-binary
+python-dotenv
