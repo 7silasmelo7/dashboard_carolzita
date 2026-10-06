@@ -94,35 +94,37 @@ if not df.empty:
 
     st.markdown("---")
 
-    
-
     # --- SEÇÃO DE CARDS DOS ÚLTIMOS 7 DIAS ---
     st.subheader("🔥 Desempenho (Últimos 7 Dias)")
     
-    # Usa a data máxima presente no banco como referência de "hoje" do relatório
+    # Identifica a data mais recente da base para servir de âncora (ex: 06/10/2026)
     data_referencia = df['Data'].max()
     data_limite_7_dias = data_referencia - pd.Timedelta(days=7)
     
-    # Filtra os dados considerando o intervalo correto dentro dos 30 dias
+    # Filtra rigorosamente os dados apenas dos últimos 7 dias do relatório
     df_ultimos_7 = df[(df['Data'] >= data_limite_7_dias) & (df['Data'] <= data_referencia)]
     
     if not df_ultimos_7.empty:
-        fat_7_dias = df_ultimos_7.groupby('Profissional')['Valor Total'].sum().reset_index()
-        fat_7_dias = fat_7_dias.sort_values(by='Valor Total', ascending=False)
+        # Agrupa por profissional calculando o faturamento e a contagem exata de atendimentos
+        resumo_7_dias = df_ultimos_7.groupby('Profissional').agg(
+            Faturamento_Total=('Valor Total', 'sum'),
+            Qtd_Atendimentos=('Valor Total', 'count')
+        ).reset_index()
         
-        # Exibe em formato de cards limpos para celular
-        for index, row in fat_7_dias.iterrows():
+        # Ordena do maior faturamento para o menor
+        resumo_7_dias = resumo_7_dias.sort_values(by='Faturamento_Total', ascending=False)
+        
+        # Exibe em formato de cards limpos e responsivos para celular
+        for index, row in resumo_7_dias.iterrows():
             profissional = row['Profissional']
-            valor = row['Valor Total']
-            
-            # Conta quantos atendimentos o profissional fez nesse período de 7 dias
-            qtd_atendimentos = len(df_ultimos_7[df_ultimos_7['Profissional'] == profissional])
+            valor = row['Faturamento_Total']
+            qtd_atendimentos = int(row['Qtd_Atendimentos'])
             
             st.markdown(f"""
                 <div class="profissional-card">
                     <strong style="font-size: 1.1rem; color: #ffffff;">👤 {profissional}</strong><br>
-                    <span style="color: #4CAF50; font-size: 1.2rem; font-weight: bold;">R$ {valor:,.2f}</span> 
-                    <span style="color: #aaaaaa; font-size: 0.9rem;">({qtd_atendimentos} atendimentos nos últimos 7 dias)</span>
+                    <span style="color: #4CAF50; font-size: 1.2rem; font-weight: bold;">R$ {valor:,.2f}</span><br>
+                    <span style="color: #aaaaaa; font-size: 0.9rem;">📋 <b>{qtd_atendimentos}</b> atendimentos nos últimos 7 dias</span>
                 </div>
             """, unsafe_allow_html=True)
     else:
