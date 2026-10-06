@@ -102,7 +102,14 @@ def executar_automacao():
             if chave == 'Data':
                 df_filtrado['data'] = df[original].astype(str)
             elif chave == 'Profissional':
-                df_filtrado['profissional'] = df[original].astype(str)
+                # TRATAMENTO DO NOME: Remove o CREFITO cortando no hífen (-) ou na palavra 'crefito'
+                nomes_limpos = []
+                for nome in df[original].astype(str):
+                    # Corta no ' - ' ou ' crefito' (ignorando maiúsculas/minúsculas) e pega apenas a primeira parte
+                    nome_tratado = nome.split(' - ')[0].split(' crefito')[0].split(' CREFITO')[0].strip()
+                    nomes_limpos.append(nome_tratado)
+                df_filtrado['profissional'] = nomes_limpos
+                
             elif chave == 'Valor Total':
                 df_filtrado['valor_total'] = pd.to_numeric(df[original], errors='coerce')
         
@@ -115,7 +122,7 @@ def executar_automacao():
         dados_para_inserir = df_filtrado.to_dict(orient="records")
         supabase.table("atendimentos").insert(dados_para_inserir).execute()
 
-        print("Dados enviados para o Supabase com sucesso!")
+        print("Dados tratados e enviados para o Supabase com sucesso!")
         return True
 
 if __name__ == "__main__":
