@@ -90,7 +90,7 @@ if not df.empty:
         yaxis_title=""
     )
     
-    st.plotly_chart(fig_prof, use_container_width=True)
+    st.plotly_chart(fig_prof, width='stretch')
 
     st.markdown("---")
 
