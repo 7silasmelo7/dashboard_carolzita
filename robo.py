@@ -32,7 +32,12 @@ def executar_automacao():
         print("Acessando o site...")
         page.goto("https://app2.clinicaagil.com.br/login")
 
+        print("Aguardando o carregamento do formulário de login...")
+        # Aguarda o campo de texto aparecer explicitamente na tela antes de preencher
+        page.wait_for_selector("input[type='text']", timeout=15000)
+
         print("Preenchendo credenciais...")
+        # Preenche com segurança usando os seletores corretos
         page.fill("input[type='text']", EMAIL)
         page.fill("input[type='password']", SENHA)
 
