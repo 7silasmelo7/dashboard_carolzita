@@ -74,22 +74,25 @@ if not df.empty:
     st.subheader("Faturamento por Profissional")
     
     faturamento_prof = df.groupby('Profissional')['Valor Total'].sum().reset_index()
-    faturamento_prof = faturamento_prof.sort_values(by='Valor Total', ascending=False)
+    # Ordena do menor para o maior para que o maior fique no topo no gráfico horizontal
+    faturamento_prof = faturamento_prof.sort_values(by='Valor Total', ascending=True)
     
-    # Gráfico otimizado para mobile com Plotly
+    # Gráfico de barras horizontal, perfeito para nomes longos e celulares
     fig_prof = px.bar(
         faturamento_prof, 
-        x='Profissional', 
-        y='Valor Total', 
+        x='Valor Total', 
+        y='Profissional', 
+        orientation='h',
         text_auto='.2s', 
         color='Profissional'
     )
     
     fig_prof.update_layout(
-        height=450,  # Altura reduzida para melhor encaixe em celulares
-        xaxis_tickangle=-35,  # Inclina mais os nomes para não cortarem
-        showlegend=False,     # Remove legenda redundante em gráficos de barra única coloridos
-        margin=dict(l=10, r=10, t=30, b=10) # Margens compactas
+        height=500,           # Altura proporcional para listar todos os profissionais
+        showlegend=False,     # Remove a legenda lateral desnecessária
+        margin=dict(l=10, r=10, t=10, b=10), # Margens compactas
+        xaxis_title="Valor Total (R$)",
+        yaxis_title=""
     )
     
     st.plotly_chart(fig_prof, use_container_width=True)
